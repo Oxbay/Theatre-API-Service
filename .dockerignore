@@ -1,2 +1,6 @@
-venv312
-.python-version
+venv
+media
+**__pycache__
+.idea
+.env
+README.md
