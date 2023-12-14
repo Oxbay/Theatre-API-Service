@@ -75,7 +75,7 @@ class PlayViewSet(
         return [int(str_id) for str_id in qs.split(",")]
 
     def get_queryset(self):
-        """Retrieve the movies with filters"""
+        """Retrieve the plays with filters"""
         title = self.request.query_params.get("title")
         genres = self.request.query_params.get("genres")
         actors = self.request.query_params.get("actors")
@@ -114,9 +114,9 @@ class PlayViewSet(
         permission_classes=[IsAdminUser],
     )
     def upload_image(self, request):
-        """Endpoint for uploading image to specific movie"""
-        movie = self.get_object()
-        serializer = self.get_serializer(movie, data=request.data)
+        """Endpoint for uploading image to specific plays"""
+        play = self.get_object()
+        serializer = self.get_serializer(play, data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -139,7 +139,7 @@ class PlayViewSet(
             OpenApiParameter(
                 "title",
                 type=OpenApiTypes.STR,
-                description="Filter by movie title (ex. ?title=fiction)",
+                description="Filter by play title (ex. ?title=fiction)",
             ),
         ]
     )
@@ -150,11 +150,10 @@ class PlayViewSet(
 class PerformanceViewSet(viewsets.ModelViewSet):
     queryset = (
         Performance.objects.all()
-        .select_related("movie", "cinema_hall")
+        .select_related("play", "theatre_hall")
         .annotate(
             tickets_available=(
-                F("cinema_hall__rows") * F("cinema_hall__seats_in_row")
-                - Count("tickets")
+                F("theatre_hall") * F("theatre_hall__seats_in_row") - Count("tickets")
             )
         )
     )
@@ -163,7 +162,7 @@ class PerformanceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         date = self.request.query_params.get("date")
-        movie_id_str = self.request.query_params.get("movie")
+        play_id_str = self.request.query_params.get("play")
 
         queryset = self.queryset
 
@@ -171,8 +170,8 @@ class PerformanceViewSet(viewsets.ModelViewSet):
             date = datetime.strptime(date, "%Y-%m-%d").date()
             queryset = queryset.filter(show_time__date=date)
 
-        if movie_id_str:
-            queryset = queryset.filter(movie_id=int(movie_id_str))
+        if play_id_str:
+            queryset = queryset.filter(play_id=int(play_id_str))
 
         return queryset
 
@@ -188,16 +187,15 @@ class PerformanceViewSet(viewsets.ModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                "movie",
+                "play",
                 type=OpenApiTypes.INT,
-                description="Filter by movie id (ex. ?movie=2)",
+                description="Filter by play id (ex. ?play=2)",
             ),
             OpenApiParameter(
                 "date",
                 type=OpenApiTypes.DATE,
                 description=(
-                    "Filter by datetime of MovieSession "
-                    "(ex. ?date=2022-10-23)"
+                    "Filter by datetime of Performance " "(ex. ?date=2022-10-23)"
                 ),
             ),
         ]
@@ -217,7 +215,7 @@ class ReservationViewSet(
     GenericViewSet,
 ):
     queryset = Reservation.objects.prefetch_related(
-        "tickets__movie_session__movie", "tickets__movie_session__cinema_hall"
+        "tickets__performance", "tickets__performance__theatre_hall"
     )
     serializer_class = ReservationSerializer
     pagination_class = ReservationPagination

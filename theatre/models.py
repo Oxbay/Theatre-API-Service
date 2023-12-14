@@ -43,7 +43,7 @@ def play_image_file_path(instance, filename):
     _, extension = os.path.splitext(filename)
     filename = f"{slugify(instance.title)}-{uuid.uuid4()}{extension}"
 
-    return os.path.join("uploads/movies/", filename)
+    return os.path.join("uploads/plays/", filename)
 
 
 class Play(models.Model):
@@ -52,7 +52,7 @@ class Play(models.Model):
     duration = models.IntegerField()
     genres = models.ManyToManyField(Genre, blank=True)
     actors = models.ManyToManyField(Actor, blank=True)
-    image = models.ImageField(null=True, upload_to=play_image_file_path)
+    image = models.ImageField(null=True, upload_to=play_image_file_path, blank=True)
 
     class Meta:
         ordering = ["title"]
@@ -64,7 +64,7 @@ class Play(models.Model):
 class Performance(models.Model):
     show_time = models.DateTimeField()
     play = models.ForeignKey(Play, on_delete=models.CASCADE)
-    cinema_hall = models.ForeignKey(TheatreHall, on_delete=models.CASCADE)
+    theatre_hall = models.ForeignKey(TheatreHall, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ["-show_time"]
@@ -75,9 +75,7 @@ class Performance(models.Model):
 
 class Reservation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     def __str__(self):
         return str(self.created_at)
@@ -87,7 +85,7 @@ class Reservation(models.Model):
 
 
 class Ticket(models.Model):
-    play_session = models.ForeignKey(
+    performance = models.ForeignKey(
         Performance, on_delete=models.CASCADE, related_name="tickets"
     )
     reservation = models.ForeignKey(
@@ -117,7 +115,7 @@ class Ticket(models.Model):
         Ticket.validate_ticket(
             self.row,
             self.seat,
-            self.play_session.cinema_hall,
+            self.performance.theatre_hall,
             ValidationError,
         )
 
@@ -134,10 +132,8 @@ class Ticket(models.Model):
         )
 
     def __str__(self):
-        return (
-            f"{str(self.play_session)} (row: {self.row}, seat: {self.seat})"
-        )
+        return f"{str(self.performance)} (row: {self.row}, seat: {self.seat})"
 
     class Meta:
-        unique_together = ("theatre_session", "row", "seat")
+        unique_together = ("performance", "row", "seat")
         ordering = ["row", "seat"]

@@ -18,6 +18,4 @@ class Command(BaseCommand):
                 self.stdout.write("...")
                 time.sleep(1)
 
-        self.stdout.write(
-            self.style.SUCCESS("Database was connected!")
-        )
+        self.stdout.write(self.style.SUCCESS("Database was connected!"))
