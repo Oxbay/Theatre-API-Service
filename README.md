@@ -14,15 +14,11 @@ git clone https://github.com/Oxbay/Theatre-API-Service.git
 cd theatre_api_service
 ```
 
-3. Switch to the develop branch:
-```
-git checkout develop
-```
-4. Create a virtual environment:
+3. Create a virtual environment:
 ```
 python -m venv venv
 ```
-5. Activate the virtual environment:
+4. Activate the virtual environment:
 
 On macOS and Linux:
 ```
@@ -32,17 +28,19 @@ On Windows:
 ```
 venv\Scripts\activate
 ```
-6. Install project dependencies:
+5. Install project dependencies:
 ```
 pip install -r requirements.txt
 ```
-7. Copy .env.sample to .env (you must make it) and fill it with all required dat
-
-8. Run database migrations:
+6. Copy .env.sample to .env and fill it with all required date
+```
+cp .env.sample .env
+```
+7. Run database migrations:
 ```
 python manage.py migrate
 ```
-9. Start the development server:
+8. Start the development server:
 ```
 python manage.py runserver
 ```
